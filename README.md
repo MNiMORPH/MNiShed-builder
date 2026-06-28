@@ -45,6 +45,22 @@ STUDY_ROOT/
 
 Then build the forcing data and run the calibrations (see the printed next-steps).
 
+### Validate the built inputs (pre-flight)
+
+Once the GRASS pipeline has produced the forcing CSV + config, check them against
+MNiShed's input contract before launching a calibration:
+
+```bash
+mnished-builder validate --config STUDY_ROOT/<name>/<name>_config.yml [--strict]
+```
+
+This runs `mnished.io.validate_inputs` and reports every contract problem at
+once — a missing required column, an unknown ET method, a config that has fallen
+behind a MNiShed schema change — distinguishing errors (exit 1) from warnings
+(silent degradation; promote to failures with `--strict`). It needs MNiShed
+installed (`pip install 'mnished-builder[validate]'`). The generated `run.sh`
+also runs this check automatically as a pre-flight before each Dakota run.
+
 ## The watershed config
 
 ```yaml
