@@ -17,6 +17,9 @@ dynamic = ["version"]
 mnished-builder = "mnished_builder.cli:main"
 
 [project.optional-dependencies]
+# The input-contract pre-flight (`mnished-builder validate`) needs MNiShed with
+# mnished.io; the study generation itself does not.
+validate = ["mnished"]
 lint = ["ruff"]
 test = ["pytest"]
 
