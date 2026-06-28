@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools >= 64.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mnished-builder"
+description = "Build MNiShed calibration studies from a one-screen watershed config by orchestrating the GRASS-addon input producers."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "GPL-3.0-or-later" }
+authors = [{ name = "Andrew D. Wickert", email = "andrewwickert@gmail.com" }]
+keywords = ["hydrology", "MNiShed", "GRASS GIS", "watershed", "forcing data"]
+dependencies = ["pyyaml"]
+dynamic = ["version"]
+
+[project.scripts]
+mnished-builder = "mnished_builder.cli:main"
+
+[project.optional-dependencies]
+lint = ["ruff"]
+test = ["pytest"]
+
+[tool.setuptools.dynamic]
+version = { attr = "mnished_builder.__version__" }
+
+[tool.setuptools.packages.find]
+include = ["mnished_builder*"]
+
+[tool.setuptools.package-data]
+mnished_builder = ["templates/*"]
+
+[tool.ruff]
+line-length = 99
+# templates/ holds the calibration driver scripts copied verbatim from the study
+# repo; they are emitted as-is (data), not part of mnished-builder's own source.
+extend-exclude = ["mnished_builder/templates"]
+
+[tool.ruff.lint]
+# Mirror MNiShed: pyflakes (F) + the meaningful pycodestyle errors/warnings, but
+# leave the whitespace-alignment rules unselected (the project uses manual
+# vertical alignment).
+select = ["E4", "E5", "E7", "E9", "F", "W"]
+ignore = ["E741"]
