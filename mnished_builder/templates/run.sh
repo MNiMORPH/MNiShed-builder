@@ -85,15 +85,26 @@ echo "=== Run: ${DECADE_NAME} / ${RUN_NAME} ==="
 # Regenerate dakota.in from this decade's params.yml
 $PYTHON generate_dakota_in.py --params "$PARAMS"
 
-# Pre-flight: initialise the model with the config template before spending
-# 500+ evaluations — catches config errors (missing keys, bad paths) immediately.
-$PYTHON - "$PARAMS" << 'PYEOF' || { echo "ERROR: Pre-flight config check failed. Aborting." >&2; exit 1; }
+# Pre-flight: check the inputs against the MNiShed contract, then initialise the
+# model, before spending 500+ evaluations — catches config/forcing problems
+# (missing columns, schema drift, bad paths) immediately. The contract check
+# lists every problem at once and is skipped gracefully on an older MNiShed.
+$PYTHON - "$PARAMS" << 'PYEOF' || { echo "ERROR: Pre-flight check failed. Aborting." >&2; exit 1; }
 import yaml, sys
 from mnished import Buckets
 with open(sys.argv[1]) as f:
     p = yaml.safe_load(f)
 cfg = p["driver"]["config_template"]
 ewb = p["driver"].get("enforce_water_balance", None)
+try:
+    from mnished import validate_inputs            # mnished.io (newer MNiShed)
+except ImportError:
+    pass                                            # older MNiShed: initialize() still pre-flights
+else:
+    report = validate_inputs(cfg)
+    print(report)
+    if not report.ok:
+        sys.exit(1)
 b = Buckets()
 b.initialize(cfg, enforce_water_balance=ewb)
 PYEOF
